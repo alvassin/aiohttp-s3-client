@@ -295,7 +295,7 @@ class S3Client:
         upload_id: str,
         object_name: str,
         parts: t.List[t.Tuple[int, str]],
-    ):
+    ) -> None:
         complete_upload_request = create_complete_upload_request(parts)
         async with self.post(
             object_name,
@@ -343,7 +343,7 @@ class S3Client:
         results_queue: deque,
         part_upload_tries: int,
         **kwargs,
-    ):
+    ) -> None:
         backoff = asyncbackoff(
             None, None,
             max_tries=part_upload_tries,
@@ -354,7 +354,7 @@ class S3Client:
             if msg is DONE:
                 break
             part_no, part_hash, part = msg
-            etag = await backoff(self._put_part)(  # type: ignore
+            etag = await backoff(self._put_part)(
                 upload_id=upload_id,
                 object_name=object_name,
                 part_no=part_no,
@@ -440,7 +440,7 @@ class S3Client:
         part_upload_tries: int = 3,
         calculate_content_sha256: bool = True,
         **kwargs,
-    ):
+    ) -> None:
         """
         Send data from iterable with multipart upload
 
@@ -460,7 +460,7 @@ class S3Client:
             )
         max_size = max_size or workers_count
 
-        upload_id = await self._create_multipart_upload(  # type: ignore
+        upload_id = await self._create_multipart_upload(
             str(object_name),
             headers=headers,
         )
@@ -508,7 +508,7 @@ class S3Client:
 
         # Parts should be in ascending order
         parts = sorted(results_queue, key=lambda x: x[0])
-        await self._complete_multipart_upload(  # type: ignore
+        await self._complete_multipart_upload(
             upload_id, object_name, parts,
         )
 
@@ -525,7 +525,7 @@ class S3Client:
         buffer_size: int,
         headers: t.Optional[HeadersType] = None,
         **kwargs,
-    ):
+    ) -> None:
         """
         Downloading range [req_range_start:req_range_end] to `file`
         """
@@ -568,7 +568,7 @@ class S3Client:
         range_get_tries: int = 3,
         headers: t.Optional[HeadersType] = None,
         **kwargs,
-    ):
+    ) -> None:
         """
         Downloads data in range `[range_start, range_end)`
         with step `range_step` to file `file_path`.
@@ -589,8 +589,8 @@ class S3Client:
             req_range_end += range_step
             if req_range_end > range_end:
                 req_range_end = range_end
-            await backoff(self._download_range)(  # type: ignore
-                object_name,  # type: ignore
+            await backoff(self._download_range)(
+                object_name,
                 writer,
                 etag=etag,
                 pos=(req_range_start - range_start),
